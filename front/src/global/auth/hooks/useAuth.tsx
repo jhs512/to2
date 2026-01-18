@@ -1,55 +1,41 @@
 "use client";
 
+import type { components } from "@/global/backend/apiV1/schema";
+import client from "@/global/backend/client";
 import { createContext, use, useEffect, useState } from "react";
 
-const NEXT_PUBLIC_API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+type MemberWithUsernameDto = components["schemas"]["MemberWithUsernameDto"];
 
-interface LoginMember {
-  id: number;
-  createDate: string;
-  modifyDate: string;
-  username: string;
-  name: string;
-  profileImgUrl: string;
-}
+const NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default function useAuth() {
-  const [loginMember, setLoginMember] = useState<LoginMember>(
-    null as unknown as LoginMember
+  const [loginMember, setLoginMember] = useState<MemberWithUsernameDto>(
+    null as unknown as MemberWithUsernameDto,
   );
   const isLogin = loginMember !== null;
 
   useEffect(() => {
-    fetch(`${NEXT_PUBLIC_API_BASE_URL}/api/v1/members/me`, {
-      credentials: "include",
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
-      .then((data: LoginMember) => {
-        setLoginMember(data);
-      })
-      .catch(() => {
-        // 로그인 안됨
-      });
+    client.GET("/api/v1/members/me").then((res) => {
+      if (res.error) return;
+
+      setLoginMember(res.data);
+    });
   }, []);
 
   const clearLoginMember = () => {
-    setLoginMember(null as unknown as LoginMember);
+    setLoginMember(null as unknown as MemberWithUsernameDto);
   };
 
   const logout = (onSuccess: () => void) => {
-    fetch(`${NEXT_PUBLIC_API_BASE_URL}/api/v1/members/auth`, {
-      method: "DELETE",
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then(() => {
-        clearLoginMember();
-        onSuccess();
-      });
+    client.DELETE("/api/v1/members/auth").then((res) => {
+      if (res.error) {
+        alert(res.error.msg);
+        return;
+      }
+
+      clearLoginMember();
+      onSuccess();
+    });
   };
 
   return {
@@ -62,7 +48,7 @@ export default function useAuth() {
 }
 
 export const AuthContext = createContext<ReturnType<typeof useAuth>>(
-  null as unknown as ReturnType<typeof useAuth>
+  null as unknown as ReturnType<typeof useAuth>,
 );
 
 export function AuthProvider({
@@ -83,7 +69,10 @@ export function useAuthContext() {
   return authState;
 }
 
-export function getLoginUrl(providerTypeCode: string, redirectUrl?: string): string {
+export function getLoginUrl(
+  providerTypeCode: string,
+  redirectUrl?: string,
+): string {
   const baseUrl = `${NEXT_PUBLIC_API_BASE_URL}/oauth2/authorization/${providerTypeCode}`;
   if (redirectUrl) {
     return `${baseUrl}?redirectUrl=${encodeURIComponent(redirectUrl)}`;

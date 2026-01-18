@@ -1,6 +1,12 @@
 "use client";
 
-import { AuthContext, useAuthContext, getLoginUrl } from "@/global/auth/hooks/useAuth";
+import { useState, useEffect } from "react";
+
+import {
+  AuthContext,
+  useAuthContext,
+  getLoginUrl,
+} from "@/global/auth/hooks/useAuth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -14,8 +20,12 @@ export default function ClientLayout({
 
   const { loginMember, isLogin, logout: _logout } = authState;
 
-  const frontendBaseUrl =
-    typeof window !== "undefined" ? window.location.origin : "";
+  const [frontendBaseUrl, setFrontendBaseUrl] = useState("");
+
+  useEffect(() => {
+    setFrontendBaseUrl(window.location.origin);
+  }, []);
+
   const redirectUrl = `${frontendBaseUrl}/members/me`;
 
   const logout = () => {
@@ -41,6 +51,7 @@ export default function ClientLayout({
               <a
                 href={getLoginUrl("google", redirectUrl)}
                 className="px-3 py-2 rounded hover:bg-gray-100 text-blue-600"
+                suppressHydrationWarning
               >
                 구글 로그인
               </a>
