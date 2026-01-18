@@ -25,7 +25,7 @@ export default function Home() {
             ) : isLoggedIn ? (
               <>
                 <span className="text-sm text-gray-600 dark:text-gray-300">
-                  {loginMember?.nickname || loginMember?.username}
+                  {loginMember?.name}
                 </span>
                 <button
                   onClick={logout}

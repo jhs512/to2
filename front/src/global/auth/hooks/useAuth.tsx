@@ -17,14 +17,8 @@ interface LoginMember {
   createDate: string;
   modifyDate: string;
   username: string;
-  nickname: string;
+  name: string;
   profileImgUrl: string;
-}
-
-interface ApiResponse<T> {
-  resultCode: string;
-  msg: string;
-  data: T;
 }
 
 interface AuthContextType {
@@ -47,12 +41,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         credentials: "include",
       });
       if (response.ok) {
-        const data: ApiResponse<LoginMember> = await response.json();
-        if (data?.data) {
-          setLoginMember(data.data);
-        } else {
-          setLoginMember(null);
-        }
+        const data: LoginMember = await response.json();
+        setLoginMember(data);
       } else {
         setLoginMember(null);
       }

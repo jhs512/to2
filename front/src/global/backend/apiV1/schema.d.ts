@@ -42,25 +42,16 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
-        readonly MemberDto: {
+        readonly MemberWithUsernameDto: {
             /** Format: date-time */
             readonly createDate: string;
             /** Format: int32 */
             readonly id: number;
             /** Format: date-time */
             readonly modifyDate: string;
-            readonly nickname: string;
+            readonly name: string;
             readonly profileImgUrl: string;
             readonly username: string;
-        };
-        readonly RsDataMemberDto: {
-            readonly data: components["schemas"]["MemberDto"];
-            readonly msg: string;
-            readonly resultCode: string;
-        };
-        readonly RsDataUnit: {
-            readonly msg: string;
-            readonly resultCode: string;
         };
         readonly RsDataVoid: {
             readonly data: unknown;
@@ -91,7 +82,7 @@ export interface operations {
                     readonly [name: string]: unknown;
                 };
                 content: {
-                    readonly "application/json;charset=UTF-8": components["schemas"]["RsDataUnit"];
+                    readonly "application/json;charset=UTF-8": components["schemas"]["RsDataVoid"];
                 };
             };
             /** @description Bad Request */
@@ -120,7 +111,7 @@ export interface operations {
                     readonly [name: string]: unknown;
                 };
                 content: {
-                    readonly "application/json;charset=UTF-8": components["schemas"]["RsDataMemberDto"];
+                    readonly "application/json;charset=UTF-8": components["schemas"]["MemberWithUsernameDto"];
                 };
             };
             /** @description Bad Request */
