@@ -20,12 +20,8 @@ export default function ClientLayout({
 
   const { loginMember, isLogin, logout: _logout } = authState;
 
-  const [frontendBaseUrl, setFrontendBaseUrl] = useState("");
-
-  useEffect(() => {
-    setFrontendBaseUrl(window.location.origin);
-  }, []);
-
+  const frontendBaseUrl =
+    process.env.NEXT_PUBLIC_FRONT_BASE_URL || "http://localhost:3000";
   const redirectUrl = `${frontendBaseUrl}/members/me`;
 
   const logout = () => {
@@ -51,7 +47,6 @@ export default function ClientLayout({
               <a
                 href={getLoginUrl("google", redirectUrl)}
                 className="px-3 py-2 rounded hover:bg-gray-100 text-blue-600"
-                suppressHydrationWarning
               >
                 구글 로그인
               </a>

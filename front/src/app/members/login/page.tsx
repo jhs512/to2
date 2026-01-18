@@ -8,12 +8,8 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get("redirectUrl") || "/";
 
-  const [frontendBaseUrl, setFrontendBaseUrl] = useState("");
-
-  useEffect(() => {
-    setFrontendBaseUrl(window.location.origin);
-  }, []);
-
+  const frontendBaseUrl =
+    process.env.NEXT_PUBLIC_FRONT_BASE_URL || "http://localhost:3000";
   const redirectUrl = `${frontendBaseUrl}${redirectPath.startsWith("/") ? redirectPath : "/" + redirectPath}`;
 
   return (
@@ -30,7 +26,6 @@ function LoginContent() {
           <a
             href={getLoginUrl("google", redirectUrl)}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-colors"
-            suppressHydrationWarning
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
