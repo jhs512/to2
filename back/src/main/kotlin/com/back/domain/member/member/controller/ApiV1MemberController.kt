@@ -1,7 +1,7 @@
 package com.back.domain.member.member.controller
 
 import com.back.domain.member.member.dto.MemberDto
-import com.back.global.exceptions.ServiceException
+import com.back.global.exceptions.DomainException
 import com.back.global.rq.Rq
 import com.back.global.rsData.RsData
 import io.swagger.v3.oas.annotations.Operation
@@ -23,7 +23,7 @@ class ApiV1MemberController(
     @Transactional(readOnly = true)
     @Operation(summary = "내 정보")
     fun me(): RsData<MemberDto> {
-        val actor = rq.actor ?: throw ServiceException("401-1", "로그인이 필요합니다.")
+        val actor = rq.actorOrNull ?: throw DomainException("401-1", "로그인이 필요합니다.")
         return RsData("200-1", "내 정보 조회 성공", MemberDto.from(actor))
     }
 

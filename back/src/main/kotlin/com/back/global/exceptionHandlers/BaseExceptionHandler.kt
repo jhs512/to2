@@ -1,6 +1,6 @@
 package com.back.global.exceptionHandlers
 
-import com.back.global.exceptions.ServiceException
+import com.back.global.exceptions.DomainException
 import com.back.global.rsData.RsData
 import jakarta.validation.ConstraintViolationException
 import org.springframework.http.HttpStatus.BAD_REQUEST
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
 
 @ControllerAdvice
-class GlobalExceptionHandler {
+class BaseExceptionHandler {
 
     @ExceptionHandler(NoSuchElementException::class)
     fun handle(ex: NoSuchElementException): ResponseEntity<RsData<Void>> =
@@ -103,8 +103,8 @@ class GlobalExceptionHandler {
             )
 
     @ResponseStatus(BAD_REQUEST)
-    @ExceptionHandler(ServiceException::class)
-    fun handle(ex: ServiceException): ResponseEntity<RsData<Void>> {
+    @ExceptionHandler(DomainException::class)
+    fun handle(ex: DomainException): ResponseEntity<RsData<Void>> {
         val rsData = ex.rsData
         return ResponseEntity
             .status(rsData.statusCode)

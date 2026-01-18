@@ -1,54 +1,42 @@
 package com.back.global.security
 
+import com.back.standard.extensions.base64Encode
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+import org.springframework.stereotype.Component
+import java.util.*
 
+@Component
 class CustomOAuth2AuthorizationRequestResolver(
-    clientRegistrationRepository: ClientRegistrationRepository,
-    authorizationRequestBaseUri: String
+    private val clientRegistrationRepository: ClientRegistrationRepository,
 ) : OAuth2AuthorizationRequestResolver {
 
-    private val defaultResolver = DefaultOAuth2AuthorizationRequestResolver(
+    private val delegate = DefaultOAuth2AuthorizationRequestResolver(
         clientRegistrationRepository,
-        authorizationRequestBaseUri
+        OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI,
     )
 
-    override fun resolve(request: HttpServletRequest): OAuth2AuthorizationRequest? {
-        val authorizationRequest = defaultResolver.resolve(request)
-        return customizeAuthorizationRequest(request, authorizationRequest)
-    }
+    override fun resolve(request: HttpServletRequest): OAuth2AuthorizationRequest? =
+        delegate.resolve(request)?.let { customizeState(it, request) }
 
-    override fun resolve(request: HttpServletRequest, clientRegistrationId: String): OAuth2AuthorizationRequest? {
-        val authorizationRequest = defaultResolver.resolve(request, clientRegistrationId)
-        return customizeAuthorizationRequest(request, authorizationRequest)
-    }
+    override fun resolve(request: HttpServletRequest, clientRegistrationId: String?): OAuth2AuthorizationRequest? =
+        delegate.resolve(request, clientRegistrationId)?.let { customizeState(it, request) }
 
-    private fun customizeAuthorizationRequest(
+    private fun customizeState(
+        req: OAuth2AuthorizationRequest,
         request: HttpServletRequest,
-        authorizationRequest: OAuth2AuthorizationRequest?
-    ): OAuth2AuthorizationRequest? {
-        if (authorizationRequest == null) {
-            return null
-        }
+    ): OAuth2AuthorizationRequest {
+        val redirectUrl = request.getParameter("redirectUrl").orEmpty().ifBlank { "/" }
+        val originState = UUID.randomUUID().toString()
+        val rawState = "$redirectUrl#$originState"
+        val encodedState = rawState.base64Encode()
 
-        val redirectUrl = request.getParameter("redirectUrl")
-
-        val customState = buildString {
-            append("state=")
-            append(authorizationRequest.state ?: "")
-            if (!redirectUrl.isNullOrBlank()) {
-                append("&redirectUrl=")
-                append(URLEncoder.encode(redirectUrl, StandardCharsets.UTF_8))
-            }
-        }
-
-        return OAuth2AuthorizationRequest.from(authorizationRequest)
-            .state(URLEncoder.encode(customState, StandardCharsets.UTF_8))
+        return OAuth2AuthorizationRequest.from(req)
+            .state(encodedState)
             .build()
     }
 }

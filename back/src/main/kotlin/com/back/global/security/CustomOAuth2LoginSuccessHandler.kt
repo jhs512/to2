@@ -1,67 +1,44 @@
 package com.back.global.security
 
 import com.back.domain.member.member.service.MemberService
-import com.back.global.app.AppConfig
-import jakarta.servlet.http.Cookie
+import com.back.global.rq.Rq
+import com.back.standard.extensions.base64Decode
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
 import org.springframework.stereotype.Component
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
+import org.springframework.transaction.annotation.Transactional
 
 @Component
 class CustomOAuth2LoginSuccessHandler(
-    private val memberService: MemberService
+    private val memberService: MemberService,
+    private val rq: Rq,
 ) : AuthenticationSuccessHandler {
 
+    @Transactional(readOnly = true)
     override fun onAuthenticationSuccess(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        authentication: Authentication
+        authentication: Authentication,
     ) {
-        val securityUser = authentication.principal as SecurityUser
+        val actor = rq.actor
 
-        val member = memberService.findById(securityUser.id).orElseThrow()
+        val accessToken = memberService.genAccessToken(actor)
 
-        val accessToken = memberService.genAccessToken(member)
+        rq.setCookie("apiKey", actor.apiKey)
+        rq.setCookie("accessToken", accessToken)
 
-        addCookie(response, "accessToken", accessToken, AppConfig.accessTokenExpirationSeconds.toInt())
-        addCookie(response, "apiKey", member.apiKey, -1)
-
-        val redirectUrl = extractRedirectUrl(request)
-
-        response.sendRedirect(redirectUrl)
-    }
-
-    private fun addCookie(response: HttpServletResponse, name: String, value: String, maxAge: Int) {
-        val cookie = Cookie(name, value)
-        cookie.path = "/"
-        cookie.domain = AppConfig.siteCookieDomain
-        cookie.isHttpOnly = true
-        cookie.secure = AppConfig.siteFrontUrl.startsWith("https")
-        cookie.maxAge = maxAge
-        response.addCookie(cookie)
-    }
-
-    private fun extractRedirectUrl(request: HttpServletRequest): String {
-        val state = request.getParameter("state")
-        if (state != null) {
-            try {
-                val decodedState = URLDecoder.decode(state, StandardCharsets.UTF_8)
-                val params = decodedState.split("&").associate {
-                    val (key, value) = it.split("=", limit = 2)
-                    key to value
-                }
-                val redirectUrl = params["redirectUrl"]
-                if (!redirectUrl.isNullOrBlank()) {
-                    return URLDecoder.decode(redirectUrl, StandardCharsets.UTF_8)
-                }
-            } catch (e: Exception) {
-                // ignore parsing errors
+        val redirectUrl = request.getParameter("state")
+            ?.let { encoded ->
+                runCatching {
+                    encoded.base64Decode()
+                }.getOrNull()
             }
-        }
-        return AppConfig.siteFrontUrl
+            ?.substringBefore('#')
+            ?.takeIf { it.isNotBlank() }
+            ?: "/"
+
+        rq.sendRedirect(redirectUrl)
     }
 }

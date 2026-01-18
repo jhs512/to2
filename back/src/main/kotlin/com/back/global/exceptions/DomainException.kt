@@ -2,7 +2,7 @@ package com.back.global.exceptions
 
 import com.back.global.rsData.RsData
 
-class ServiceException(private val resultCode: String, private val msg: String) : RuntimeException(
+class DomainException(private val resultCode: String, private val msg: String) : RuntimeException(
     "$resultCode : $msg"
 ) {
     val rsData: RsData<Void>

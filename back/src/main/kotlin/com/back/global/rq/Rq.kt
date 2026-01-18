@@ -9,61 +9,63 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
-import org.springframework.web.context.annotation.RequestScope
 
 @Component
-@RequestScope
 class Rq(
-    private val request: HttpServletRequest,
-    private val response: HttpServletResponse,
+    private val req: HttpServletRequest,
+    private val resp: HttpServletResponse,
     private val memberService: MemberService
 ) {
-    private var _actor: Member? = null
-    private var actorResolved = false
-
-    val actor: Member?
-        get() {
-            if (!actorResolved) {
-                _actor = resolveActor()
-                actorResolved = true
+    val actor: Member
+        get() = SecurityContextHolder
+            .getContext()
+            ?.authentication
+            ?.principal
+            ?.let {
+                if (it is SecurityUser) {
+                    memberService.findById(it.id).orElse(null)
+                } else {
+                    null
+                }
             }
-            return _actor
-        }
+            ?: throw IllegalStateException("인증된 사용자가 없습니다.")
 
-    private fun resolveActor(): Member? {
-        val authentication = SecurityContextHolder.getContext().authentication
-            ?: return null
+    val actorOrNull: Member?
+        get() = runCatching { actor }.getOrNull()
 
-        val principal = authentication.principal
-        if (principal is SecurityUser) {
-            return memberService.findById(principal.id).orElse(null)
-        }
-        return null
+    fun getHeader(name: String, defaultValue: String): String {
+        return req.getHeader(name) ?: defaultValue
     }
 
-    fun getCookie(name: String): String? {
-        return request.cookies?.find { it.name == name }?.value
+    fun setHeader(name: String, value: String) {
+        resp.setHeader(name, value)
     }
 
-    fun setCookie(name: String, value: String, maxAge: Int = -1) {
-        val cookie = Cookie(name, value)
-        cookie.path = "/"
-        cookie.domain = AppConfig.siteCookieDomain
-        cookie.isHttpOnly = true
-        cookie.secure = AppConfig.siteFrontUrl.startsWith("https")
-        cookie.maxAge = maxAge
-        response.addCookie(cookie)
+    fun getCookieValue(name: String, defaultValue: String): String =
+        req.cookies
+            ?.firstOrNull { it.name == name }
+            ?.value
+            ?.takeIf { it.isNotBlank() }
+            ?: defaultValue
+
+    fun setCookie(name: String, value: String?) {
+        val cookie = Cookie(name, value ?: "").apply {
+            path = "/"
+            isHttpOnly = true
+            domain = AppConfig.siteCookieDomain
+            secure = AppConfig.siteFrontUrl.startsWith("https")
+            setAttribute("SameSite", "Strict")
+            maxAge = if (value.isNullOrBlank()) 0 else 60 * 60 * 24 * 365
+        }
+
+        resp.addCookie(cookie)
     }
 
     fun deleteCookie(name: String) {
-        val cookie = Cookie(name, "")
-        cookie.path = "/"
-        cookie.domain = AppConfig.siteCookieDomain
-        cookie.maxAge = 0
-        response.addCookie(cookie)
+        setCookie(name, null)
     }
 
-    fun redirect(url: String) {
-        response.sendRedirect(url)
+    fun sendRedirect(url: String) {
+        resp.sendRedirect(url)
     }
 }
