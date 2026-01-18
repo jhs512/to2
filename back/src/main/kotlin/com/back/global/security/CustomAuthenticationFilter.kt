@@ -63,7 +63,7 @@ class CustomAuthenticationFilter(
             return
         }
 
-        val member = memberService.findById(memberId).orElse(null) ?: return
+        val member = memberService.findById(memberId) ?: return
 
         val securityUser = SecurityUser.from(member)
 
@@ -77,7 +77,7 @@ class CustomAuthenticationFilter(
     }
 
     private fun authenticateWithApiKey(apiKey: String) {
-        val member = memberService.findByApiKey(apiKey).orElse(null) ?: return
+        val member = memberService.findByApiKey(apiKey) ?: return
 
         val securityUser = SecurityUser.from(member)
 

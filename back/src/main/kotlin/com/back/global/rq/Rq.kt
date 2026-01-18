@@ -23,7 +23,7 @@ class Rq(
             ?.principal
             ?.let {
                 if (it is SecurityUser) {
-                    memberService.findById(it.id).orElse(null)
+                    memberService.findById(it.id)
                 } else {
                     null
                 }
