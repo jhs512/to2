@@ -1,6 +1,6 @@
 "use client";
 
-import { getGoogleLoginUrl } from "@/global/auth/hooks/useAuth";
+import { getLoginUrl } from "@/global/auth/hooks/useAuth";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
@@ -8,27 +8,23 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get("redirectUrl") || "/";
 
-  const handleGoogleLogin = () => {
-    // 전체 URL로 변환 (백엔드에서 프론트엔드로 리다이렉트해야 하므로)
-    const redirectUrl = `${window.location.origin}${redirectPath.startsWith('/') ? redirectPath : '/' + redirectPath}`;
-    window.location.href = getGoogleLoginUrl(redirectUrl);
-  };
+  const frontendBaseUrl =
+    typeof window !== "undefined" ? window.location.origin : "";
+  const redirectUrl = `${frontendBaseUrl}${redirectPath.startsWith("/") ? redirectPath : "/" + redirectPath}`;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="flex items-center justify-center py-12">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            로그인
-          </h2>
+          <h2 className="text-3xl font-extrabold text-gray-900">로그인</h2>
           <p className="mt-2 text-sm text-gray-600">
             소셜 계정으로 로그인하세요
           </p>
         </div>
 
         <div className="mt-8 space-y-4">
-          <button
-            onClick={handleGoogleLogin}
+          <a
+            href={getLoginUrl("google", redirectUrl)}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-colors"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -50,7 +46,7 @@ function LoginContent() {
               />
             </svg>
             <span className="font-medium">Google로 로그인</span>
-          </button>
+          </a>
         </div>
       </div>
     </div>
@@ -61,7 +57,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
       }

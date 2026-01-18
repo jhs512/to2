@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/global/auth/hooks/useAuth";
+import { useAuthContext } from "@/global/auth/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useEffect, ComponentType } from "react";
 
@@ -8,25 +8,27 @@ export default function withLogin<P extends object>(
   Component: ComponentType<P>
 ) {
   return function ProtectedComponent(props: P) {
-    const { isLoggedIn, isLoading } = useAuth();
+    const { isLogin, loginMember } = useAuthContext();
     const router = useRouter();
 
     useEffect(() => {
-      if (!isLoading && !isLoggedIn) {
-        router.replace("/members/login");
+      if (!isLogin && loginMember === null) {
+        // 아직 로딩 중이 아닌데 로그인이 안되어 있으면 리다이렉트
+        const timer = setTimeout(() => {
+          if (!isLogin) {
+            router.replace("/members/login");
+          }
+        }, 100);
+        return () => clearTimeout(timer);
       }
-    }, [isLoggedIn, isLoading, router]);
+    }, [isLogin, loginMember, router]);
 
-    if (isLoading) {
+    if (!isLogin) {
       return (
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center min-h-[200px]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
       );
-    }
-
-    if (!isLoggedIn) {
-      return null;
     }
 
     return <Component {...props} />;

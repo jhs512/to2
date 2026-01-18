@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  ReactNode,
-} from "react";
+import { createContext, use, useEffect, useState } from "react";
 
 const NEXT_PUBLIC_API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
@@ -21,83 +14,77 @@ interface LoginMember {
   profileImgUrl: string;
 }
 
-interface AuthContextType {
-  loginMember: LoginMember | null;
-  isLoggedIn: boolean;
-  isLoading: boolean;
-  logout: () => Promise<void>;
-  refresh: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType | null>(null);
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [loginMember, setLoginMember] = useState<LoginMember | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchMe = useCallback(async () => {
-    try {
-      const response = await fetch(`${NEXT_PUBLIC_API_BASE_URL}/api/v1/members/me`, {
-        credentials: "include",
-      });
-      if (response.ok) {
-        const data: LoginMember = await response.json();
-        setLoginMember(data);
-      } else {
-        setLoginMember(null);
-      }
-    } catch {
-      setLoginMember(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+export default function useAuth() {
+  const [loginMember, setLoginMember] = useState<LoginMember>(
+    null as unknown as LoginMember
+  );
+  const isLogin = loginMember !== null;
 
   useEffect(() => {
-    fetchMe();
-  }, [fetchMe]);
-
-  const logout = async () => {
-    try {
-      await fetch(`${NEXT_PUBLIC_API_BASE_URL}/api/v1/members/logout`, {
-        method: "DELETE",
-        credentials: "include",
+    fetch(`${NEXT_PUBLIC_API_BASE_URL}/api/v1/members/me`, {
+      credentials: "include",
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then((data: LoginMember) => {
+        setLoginMember(data);
+      })
+      .catch(() => {
+        // 로그인 안됨
       });
-    } finally {
-      setLoginMember(null);
-    }
+  }, []);
+
+  const clearLoginMember = () => {
+    setLoginMember(null as unknown as LoginMember);
   };
 
-  const refresh = async () => {
-    setIsLoading(true);
-    await fetchMe();
+  const logout = (onSuccess: () => void) => {
+    fetch(`${NEXT_PUBLIC_API_BASE_URL}/api/v1/members/auth`, {
+      method: "DELETE",
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then(() => {
+        clearLoginMember();
+        onSuccess();
+      });
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        loginMember,
-        isLoggedIn: !!loginMember,
-        isLoading,
-        logout,
-        refresh,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  return {
+    isLogin,
+    loginMember,
+    logout,
+    setLoginMember,
+    clearLoginMember,
+  };
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+export const AuthContext = createContext<ReturnType<typeof useAuth>>(
+  null as unknown as ReturnType<typeof useAuth>
+);
+
+export function AuthProvider({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  const authState = useAuth();
+
+  return <AuthContext value={authState}>{children}</AuthContext>;
 }
 
-export function getGoogleLoginUrl(redirectUrl?: string): string {
-  const baseUrl = `${NEXT_PUBLIC_API_BASE_URL}/oauth2/authorization/google`;
+export function useAuthContext() {
+  const authState = use(AuthContext);
+
+  if (authState === null) throw new Error("AuthContext is not found");
+
+  return authState;
+}
+
+export function getLoginUrl(providerTypeCode: string, redirectUrl?: string): string {
+  const baseUrl = `${NEXT_PUBLIC_API_BASE_URL}/oauth2/authorization/${providerTypeCode}`;
   if (redirectUrl) {
     return `${baseUrl}?redirectUrl=${encodeURIComponent(redirectUrl)}`;
   }

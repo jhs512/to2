@@ -4,7 +4,7 @@
  */
 
 export type paths = {
-    readonly "/api/v1/members/logout": {
+    readonly "/api/v1/members/auth": {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
