@@ -4,7 +4,6 @@ import com.back.domain.member.member.entity.Member
 import com.back.domain.member.member.repository.MemberRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
 
 @Service
 @Transactional(readOnly = true)
@@ -12,25 +11,23 @@ class MemberService(
     private val memberRepository: MemberRepository,
     private val authTokenService: AuthTokenService
 ) {
-
-    fun findByUsername(username: String): Optional<Member> {
+    fun findByUsername(username: String): Member? {
         return memberRepository.findByUsername(username)
     }
 
-    fun findByApiKey(apiKey: String): Optional<Member> {
+    fun findByApiKey(apiKey: String): Member? {
         return memberRepository.findByApiKey(apiKey)
     }
 
-    fun findById(id: Int): Optional<Member> {
-        return memberRepository.findById(id)
+    fun findById(id: Int): Member? {
+        return memberRepository.findById(id).orElse(null)
     }
 
     @Transactional
     fun modifyOrJoin(username: String, nickname: String, profileImgUrl: String): Member {
-        val opMember = findByUsername(username)
+        val member = findByUsername(username)
 
-        if (opMember.isPresent) {
-            val member = opMember.get()
+        if (member != null) {
             member.nickname = nickname
             if (profileImgUrl.isNotBlank()) {
                 member.profileImgUrl = profileImgUrl
@@ -38,13 +35,13 @@ class MemberService(
             return member
         }
 
-        val member = Member(
+        val newMember = Member(
             username = username,
             nickname = nickname,
             profileImgUrl = profileImgUrl
         )
 
-        return memberRepository.save(member)
+        return memberRepository.save(newMember)
     }
 
     fun genAccessToken(member: Member): String {
