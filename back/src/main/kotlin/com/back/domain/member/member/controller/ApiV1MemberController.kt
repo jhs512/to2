@@ -27,7 +27,7 @@ class ApiV1MemberController(
         return MemberWithUsernameDto(rq.actor)
     }
 
-    @DeleteMapping("/logout")
+    @DeleteMapping("/auth")
     @Operation(summary = "로그아웃")
     fun logout(): RsData<Void> {
         rq.deleteCookie("apiKey")
