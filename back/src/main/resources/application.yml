@@ -7,6 +7,8 @@ spring:
     name: back
   profiles:
     active: dev
+  config:
+    import: optional:file:.env[.properties]
   output:
     ansi:
       enabled: always
@@ -27,6 +29,16 @@ spring:
         use_sql_comments: true
         default_batch_fetch_size: 100
     open-in-view: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${SPRING__SECURITY__OAUTH2__CLIENT__REGISTRATION__GOOGLE__CLIENT_ID}
+            client-secret: ${SPRING__SECURITY__OAUTH2__CLIENT__REGISTRATION__GOOGLE__CLIENT_SECRET}
+            scope:
+              - email
+              - profile
 
 springdoc:
   default-produces-media-type: application/json;charset=UTF-8
@@ -44,11 +56,15 @@ custom:
     frontUrl: "http://${custom.dev.cookieDomain}:3000"
     backUrl: "http://${custom.dev.cookieDomain}:${server.port}"
   prod:
-    cookieDomain: example.com
-    frontUrl: "https://www.${custom.prod.cookieDomain}"
+    cookieDomain: to2.at
+    frontUrl: "https://${custom.prod.cookieDomain}"
     backUrl: "https://api.${custom.prod.cookieDomain}"
   site:
     cookieDomain: "${custom.dev.cookieDomain}"
     frontUrl: "${custom.dev.frontUrl}"
     backUrl: "${custom.dev.backUrl}"
-    name: to2
+    name: to2.at
+  jwt:
+    secretKey: ${CUSTOM__JWT__SECRET_KEY}
+  accessToken:
+    expirationSeconds: 604800
