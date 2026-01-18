@@ -6,9 +6,11 @@ import { Suspense } from "react";
 
 function LoginContent() {
   const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get("redirectUrl") || "/";
+  const redirectPath = searchParams.get("redirectUrl") || "/";
 
   const handleGoogleLogin = () => {
+    // 전체 URL로 변환 (백엔드에서 프론트엔드로 리다이렉트해야 하므로)
+    const redirectUrl = `${window.location.origin}${redirectPath.startsWith('/') ? redirectPath : '/' + redirectPath}`;
     window.location.href = getGoogleLoginUrl(redirectUrl);
   };
 
