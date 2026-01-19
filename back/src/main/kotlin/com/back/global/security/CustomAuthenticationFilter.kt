@@ -45,7 +45,7 @@ class CustomAuthenticationFilter(
             val rsData: RsData<Void> = e.rsData
             response.contentType = "$APPLICATION_JSON_VALUE; charset=UTF-8"
             response.status = rsData.statusCode
-            response.writer.write(Ut.json.toString(rsData))
+            response.writer.write(Ut.JSON.toString(rsData))
         }
     }
 

@@ -2,7 +2,6 @@ package com.back.domain.member.member.service
 
 import com.back.domain.member.member.entity.Member
 import com.back.domain.member.member.repository.MemberRepository
-import org.springframework.format.Printer
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

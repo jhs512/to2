@@ -1,36 +1,44 @@
 package com.back.global.app
 
 import com.back.standard.util.Ut
-import com.fasterxml.jackson.databind.ObjectMapper
-import jakarta.annotation.PostConstruct
-import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.getBean
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
+import tools.jackson.databind.ObjectMapper
 
 object AppConfig {
-    lateinit var customConfigProperties: CustomConfigProperties
+    private lateinit var ctx: ApplicationContext
 
-    val siteFrontUrl: String by lazy { customConfigProperties.site.frontUrl }
-    val siteBackUrl: String by lazy { customConfigProperties.site.backUrl }
-    val siteCookieDomain: String by lazy { customConfigProperties.site.cookieDomain }
-    val siteName: String by lazy { customConfigProperties.site.name }
-    val jwtSecretKey: String by lazy { customConfigProperties.jwt.secretKey }
-    val accessTokenExpirationSeconds: Long by lazy { customConfigProperties.accessToken.expirationSeconds }
+    internal fun init(applicationContext: ApplicationContext) {
+        ctx = applicationContext
+    }
+
+    private inline fun <reified T : Any> bean(): T = ctx.getBean<T>()
+
+    val props: CustomConfigProperties by lazy { bean() }
+
+    val siteFrontUrl: String get() = props.site.frontUrl
+    val siteBackUrl: String get() = props.site.backUrl
+    val siteCookieDomain: String get() = props.site.cookieDomain
+    val siteName: String get() = props.site.name
+    val jwtSecretKey: String get() = props.jwt.secretKey
+    val accessTokenExpirationSeconds: Long get() = props.accessToken.expirationSeconds
 }
 
 @Configuration
-class AppConfigInitializer(
-    private val customConfigProperties: CustomConfigProperties
+private class AppConfigInitializer(
+    applicationContext: ApplicationContext,
+    private val objectMapper: ObjectMapper
 ) {
-    @Autowired(required = false)
-    private var objectMapper: ObjectMapper? = null
-    @PostConstruct
-    fun init() {
-        Ut.json.objectMapper = objectMapper ?: ObjectMapper()
-        AppConfig.customConfigProperties = customConfigProperties
+    init {
+        AppConfig.init(applicationContext)
+
+        Ut.JSON.objectMapper = objectMapper
     }
 
     @Bean
-    fun passwordEncoder() = BCryptPasswordEncoder()
+    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 }

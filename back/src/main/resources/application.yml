@@ -1,10 +1,12 @@
 server:
   port: 8080
   forward-headers-strategy: native
-
 spring:
   application:
     name: back
+  datasource:
+    hikari:
+      auto-commit: false
   profiles:
     active: dev
   config:
@@ -12,9 +14,6 @@ spring:
   output:
     ansi:
       enabled: always
-  datasource:
-    hikari:
-      auto-commit: false
   jackson:
     serialization:
       fail-on-empty-beans: false
@@ -39,16 +38,14 @@ spring:
             scope:
               - email
               - profile
-
 springdoc:
   default-produces-media-type: application/json;charset=UTF-8
-
 logging:
   level:
+    com.back: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
     org.hibernate.orm.jdbc.extract: TRACE
     org.springframework.transaction.interceptor: TRACE
-    com.back: DEBUG
 custom:
   dev:
     cookieDomain: localhost

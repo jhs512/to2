@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service
 class AuthTokenService {
 
     fun genAccessToken(member: Member): String {
-        return Ut.jwt.createToken(
+        return Ut.JWT.createToken(
             AppConfig.jwtSecretKey,
             AppConfig.accessTokenExpirationSeconds,
             mapOf(
@@ -21,6 +21,6 @@ class AuthTokenService {
     }
 
     fun payload(accessToken: String): Map<String, Any>? {
-        return Ut.jwt.payload(AppConfig.jwtSecretKey, accessToken)
+        return Ut.JWT.payload(AppConfig.jwtSecretKey, accessToken)
     }
 }

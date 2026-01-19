@@ -1,13 +1,13 @@
 package com.back.standard.util
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
+import tools.jackson.databind.ObjectMapper
 import java.util.*
 import javax.crypto.SecretKey
 
 object Ut {
-    object json {
+    object JSON {
         lateinit var objectMapper: ObjectMapper
 
         fun toString(obj: Any, defaultValue: String = ""): String {
@@ -52,7 +52,7 @@ object Ut {
         }
     }
 
-    object jwt {
+    object JWT {
         fun createToken(secretKeyStr: String, expireSeconds: Long, claims: Map<String, Any>): String {
             val secretKey = Keys.hmacShaKeyFor(
                 Base64.getEncoder().encodeToString(secretKeyStr.toByteArray()).toByteArray()
@@ -113,7 +113,7 @@ object Ut {
         }
     }
 
-    object str {
+    object STR {
         fun isBlank(str: String?): Boolean {
             return str.isNullOrBlank()
         }
