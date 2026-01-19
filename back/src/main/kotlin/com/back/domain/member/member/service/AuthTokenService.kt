@@ -14,21 +14,13 @@ class AuthTokenService {
             AppConfig.accessTokenExpirationSeconds,
             mapOf(
                 "id" to member.id,
-                "username" to member.username
+                "username" to member.username,
+                "name" to member.name
             )
         )
     }
 
-    fun getPayload(token: String): Map<String, Any>? {
-        if (!Ut.jwt.isValid(AppConfig.jwtSecretKey, token)) {
-            return null
-        }
-
-        return Ut.jwt.getClaims(AppConfig.jwtSecretKey, token)
-    }
-
-    fun getMemberIdFromAccessToken(accessToken: String): Int {
-        val payload = getPayload(accessToken) ?: return 0
-        return (payload["id"] as Number).toInt()
+    fun payload(accessToken: String): Map<String, Any>? {
+        return Ut.jwt.payload(AppConfig.jwtSecretKey, accessToken)
     }
 }

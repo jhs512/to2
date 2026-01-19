@@ -3,6 +3,7 @@ package com.back.global.security
 import com.back.global.app.AppConfig
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.invoke
@@ -23,13 +24,8 @@ class SecurityConfig(
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http {
             authorizeHttpRequests {
-                authorize("/favicon.ico", permitAll)
-                authorize("/h2-console/**", permitAll)
-                authorize("/swagger-ui/**", permitAll)
-                authorize("/v3/api-docs/**", permitAll)
-                authorize("/api/v1/members/me", permitAll)
-                authorize("/api/v1/members/logout", permitAll)
-                authorize("/api/v1/**", permitAll)
+                authorize(HttpMethod.DELETE, "/api/v1/members/auth", permitAll)
+                authorize("/api/v1/**", authenticated)
                 authorize(anyRequest, permitAll)
             }
 

@@ -16,7 +16,6 @@ class CustomOAuth2LoginSuccessHandler(
     private val rq: Rq,
 ) : AuthenticationSuccessHandler {
 
-    @Transactional(readOnly = true)
     override fun onAuthenticationSuccess(
         request: HttpServletRequest,
         response: HttpServletResponse,

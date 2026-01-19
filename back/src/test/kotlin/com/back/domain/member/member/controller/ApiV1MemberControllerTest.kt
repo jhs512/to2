@@ -55,11 +55,15 @@ class ApiV1MemberControllerTest {
     @Test
     @DisplayName("내 정보, 인증 없이 접근 시 실패")
     fun t2() {
-        org.junit.jupiter.api.assertThrows<jakarta.servlet.ServletException> {
-            mvc.perform(
+        val resultActions = mvc
+            .perform(
                 get("/api/v1/members/me")
-            ).andDo(print())
-        }
+            )
+            .andDo(print())
+
+        // OAuth2 로그인 설정으로 인해 302 리다이렉트 반환
+        resultActions
+            .andExpect(status().is3xxRedirection)
     }
 
     @Test

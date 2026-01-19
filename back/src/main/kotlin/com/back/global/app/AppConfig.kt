@@ -1,6 +1,9 @@
 package com.back.global.app
 
+import com.back.standard.util.Ut
+import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.annotation.PostConstruct
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 
@@ -13,6 +16,9 @@ class AppConfig(
     @Value("\${custom.jwt.secretKey}") val jwtSecretKey: String,
     @Value("\${custom.accessToken.expirationSeconds}") val accessTokenExpirationSeconds: Long
 ) {
+    @Autowired(required = false)
+    private var objectMapper: ObjectMapper? = null
+
     companion object {
         lateinit var siteFrontUrl: String
         lateinit var siteBackUrl: String
@@ -24,6 +30,7 @@ class AppConfig(
 
     @PostConstruct
     fun init() {
+        Ut.json.objectMapper = objectMapper ?: ObjectMapper()
         Companion.siteFrontUrl = siteFrontUrl
         Companion.siteBackUrl = siteBackUrl
         Companion.siteCookieDomain = siteCookieDomain

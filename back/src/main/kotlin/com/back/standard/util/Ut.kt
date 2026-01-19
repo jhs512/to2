@@ -1,11 +1,24 @@
 package com.back.standard.util
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import java.util.*
 import javax.crypto.SecretKey
 
 object Ut {
+    object json {
+        lateinit var objectMapper: ObjectMapper
+
+        fun toString(obj: Any, defaultValue: String = ""): String {
+            return try {
+                objectMapper.writeValueAsString(obj)
+            } catch (e: Exception) {
+                defaultValue
+            }
+        }
+    }
+
     object cmd {
         fun run(vararg args: String) {
             val isWindows = System
@@ -82,6 +95,21 @@ object Ut {
                 .build()
                 .parseSignedClaims(token)
                 .payload
+        }
+
+        fun payload(secret: String, jwtStr: String): Map<String, Any>? {
+            return try {
+                val secretKey = Keys.hmacShaKeyFor(secret.toByteArray())
+
+                Jwts
+                    .parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parse(jwtStr)
+                    .payload as Map<String, Any>
+            } catch (e: Exception) {
+                null
+            }
         }
     }
 
