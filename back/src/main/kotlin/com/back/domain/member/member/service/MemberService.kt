@@ -2,6 +2,8 @@ package com.back.domain.member.member.service
 
 import com.back.domain.member.member.entity.Member
 import com.back.domain.member.member.repository.MemberRepository
+import org.springframework.format.Printer
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -9,8 +11,11 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class MemberService(
     private val memberRepository: MemberRepository,
-    private val authTokenService: AuthTokenService
+    private val authTokenService: AuthTokenService,
+    private val paswordEncodder: PasswordEncoder
 ) {
+    fun count(): Long = memberRepository.count()
+
     fun findByUsername(username: String): Member? {
         return memberRepository.findByUsername(username)
     }
@@ -23,7 +28,17 @@ class MemberService(
         return memberRepository.findById(id).orElse(null)
     }
 
-    @Transactional
+    fun join(username: String, password: String, nickname: String, profileImgUrl: String): Member {
+        val newMember = Member(
+            username = username,
+            password = password,
+            nickname = nickname,
+            profileImgUrl = profileImgUrl
+        )
+
+        return memberRepository.save(newMember)
+    }
+
     fun modifyOrJoin(username: String, nickname: String, profileImgUrl: String): Member {
         val member = findByUsername(username)
 

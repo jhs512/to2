@@ -45,4 +45,8 @@ class Member private constructor(
     @get:Transient
     val authorities: Collection<GrantedAuthority>
         get() = listOf(SimpleGrantedAuthority("ROLE_USER"))
+
+    fun modifyApiKey(apiKey: String) {
+        this.apiKey = apiKey
+    }
 }

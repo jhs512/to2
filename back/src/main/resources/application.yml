@@ -49,7 +49,6 @@ logging:
     org.hibernate.orm.jdbc.extract: TRACE
     org.springframework.transaction.interceptor: TRACE
     com.back: DEBUG
-
 custom:
   dev:
     cookieDomain: localhost
@@ -68,3 +67,8 @@ custom:
     secretKey: ${CUSTOM__JWT__SECRET_KEY}
   accessToken:
     expirationSeconds: 604800
+  notProdMembers:
+    - username: GOOGLE__103240209825008011930
+      apiKey: google__1
+      nickname: 몰입코딩(개발자 희성)
+      profileImgUrl: https://lh3.googleusercontent.com/a/ACg8ocKClYFeK9VXN6ROFvx-ddTpt0ep30M3TZwaKk1esQrbEtzuqoC2=s96-c
